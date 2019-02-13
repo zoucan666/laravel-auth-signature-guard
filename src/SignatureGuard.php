@@ -69,6 +69,7 @@ class SignatureGuard
 
         $signature = base64_encode(hash_hmac('sha1', $stringToSign, $client->secret, true));
         if ($request->input(['signature']) == $signature) {
+            //TODO 检查时间戳，误差1分钟
             return $client->user;
         }
         return null;
