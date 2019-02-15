@@ -8,6 +8,8 @@
 app_id
 timestamp
 signature
+signature_method
+signature_nonce
 
 参数签名计算
 

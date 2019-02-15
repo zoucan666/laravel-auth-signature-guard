@@ -75,10 +75,6 @@ class SignatureGuard
             throw new AuthenticationException('Missing signature_method parameter.');
         }
 
-        if (!$request->has('signature_version')) {
-            throw new AuthenticationException('Missing signature_version parameter.');
-        }
-
         if (!$request->has('signature_nonce')) {
             throw new AuthenticationException('Missing signature_nonce parameter.');
         }
