@@ -2,14 +2,51 @@
 
 适用于 Laravel Auth 的签名看守器，基于 Laravel Passport
 
+## 安装 
 
-请求必填的 参数
+```php
+//认证配置
+/config/auth.php
 
-app_id
-timestamp
-signature
-signature_method
-signature_nonce
+//增加一个看守器
+
+'guards' => [
+	'web'=>[],//原WEB的
+	'api'=>[],//API
+	'signature'=>[//新增的
+		'driver'=>'signature'
+		'provider'=>'users',
+	]
+]
+// 使用时在控制器中
+
+class SDKController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth:signature');
+    }
+}
+
+//按照以上配置，该控制器所有的方法都会经过签名看守器认证。
+
+```
+
+
+### 公共请求参数
+
+公共请求参数是每个接口都需要使用到的请求参数。
+
+| 名称 | 类型 | 描述 |
+| ------------- | ----------- | ----------- |
+| `app_id` | String | 访问服务使用的应用ID。 |
+| `timestamp` | Int | 请求的时间戳，10位数整形。 |
+| `signature` | String | 签名结果串。 |
+| `signature_method` | String | 签名方式，取值：HMAC-SHA1/HMAC-SHA256 |
+| `signature_nonce` | String | 唯一随机数，用于防止网络重放攻击。在不同请求间要使用不同的随机数值。 |
+
+
+
 
 参数签名计算
 
