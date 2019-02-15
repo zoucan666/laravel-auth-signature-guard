@@ -7,11 +7,11 @@
 
 namespace Larva\Auth;
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
 use Laravel\Passport\ClientRepository;
-use Psr\Http\Message\RequestInterface;
 
 /**
  * Class SignatureGuard
@@ -51,11 +51,20 @@ class SignatureGuard
      *
      * @param  \Illuminate\Http\Request $request
      * @return User|void
+     * @throws AuthenticationException
      */
     public function user(Request $request)
     {
-        if (!$request->has(['app_id', 'timestamp', 'signature_method', 'signature_nonce'])) {
-            return;
+        if (!$request->has('app_id')) {
+            throw new AuthenticationException('Missing app_id parameter.');
+        }
+
+        if (!$request->has('timestamp')) {
+            throw new AuthenticationException('Missing timestamp parameter.');
+        }
+
+        if (!$request->has('signature')) {
+            throw new AuthenticationException('Missing signature parameter.');
         }
 
         //获取参数
@@ -63,16 +72,17 @@ class SignatureGuard
 
         //获取有效的Client
         if (($client = $this->clients->findActive($params['app_id'])) == null) {
-            return;
+            throw new AuthenticationException('App_id is incorrect.');
         }
         //检查时间戳，误差1分钟
-        if ((time() - intval($params['timestamp'])) > 3600 * 24) {
-            return;
+        if ((time() - intval($params['timestamp'])) > 60) {
+            throw new AuthenticationException('Client time is incorrect.');
+
         }
-        if ($request->input('signature') == $this->getSignature($request, $params, $client->secret)) {
-            return $client->user;
+        if ($request->input('signature') != $this->getSignature($request, $params, $client->secret)) {
+            throw new AuthenticationException('Signature verification failed');
         }
-        return;
+        return $client->user;
     }
 
 
