@@ -7,6 +7,7 @@
 
 namespace Larva\Auth;
 
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Http\Request;
 use Laravel\Passport\ClientRepository;
@@ -48,30 +49,38 @@ class SignatureGuard
      * 获取传入请求的用户。
      *
      * @param  \Illuminate\Http\Request $request
-     * @return mixed
+     * @return User|void
      */
     public function user(Request $request)
     {
+        if (!$request->has(['app_id', 'timestamp'])) {
+            return;
+        }
         //获取参数
         $params = $request->except(['signature']);
-        //检查必要的参数
-        if (!isset($params['app_id']) || !isset($params['timestamp'])) {
-            return null;
+
+        //获取有效的Client
+        if (($client = $this->clients->findActive($params['app_id'])) == null) {
+            return;
+        }
+        //检查时间戳，误差1分钟
+        if ((time() - intval($params['timestamp'])) > 3600*24) {
+            return;
         }
 
-        if (($client = $this->clients->findActive($params['app_id'])) != null) {
-            return null;
-        }
         //排序参数
+        //按照键名对关联数组进行升序排序
         ksort($params);
+
+        //编码
         $stringToSign = urlencode(http_build_query($params, null, '&', PHP_QUERY_RFC3986));
 
-
+        //签名
         $signature = base64_encode(hash_hmac('sha1', $stringToSign, $client->secret, true));
-        if ($request->input(['signature']) == $signature) {
-            //TODO 检查时间戳，误差1分钟
+
+        if ($request->input('signature') == $signature) {
             return $client->user;
         }
-        return null;
+        return;
     }
 }
