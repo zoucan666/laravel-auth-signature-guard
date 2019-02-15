@@ -7,10 +7,11 @@
 
 namespace Larva\Auth;
 
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Contracts\Auth\UserProvider;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
 use Laravel\Passport\ClientRepository;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Class SignatureGuard
@@ -53,9 +54,10 @@ class SignatureGuard
      */
     public function user(Request $request)
     {
-        if (!$request->has(['app_id', 'timestamp'])) {
+        if (!$request->has(['app_id', 'timestamp', 'signature_method', 'signature_nonce'])) {
             return;
         }
+
         //获取参数
         $params = $request->except(['signature']);
 
@@ -64,23 +66,31 @@ class SignatureGuard
             return;
         }
         //检查时间戳，误差1分钟
-        if ((time() - intval($params['timestamp'])) > 3600*24) {
+        if ((time() - intval($params['timestamp'])) > 3600 * 24) {
             return;
         }
-
-        //排序参数
-        //按照键名对关联数组进行升序排序
-        ksort($params);
-
-        //编码
-        $stringToSign = urlencode(http_build_query($params, null, '&', PHP_QUERY_RFC3986));
-
-        //签名
-        $signature = base64_encode(hash_hmac('sha1', $stringToSign, $client->secret, true));
-
-        if ($request->input('signature') == $signature) {
+        if ($request->input('signature') == $this->getSignature($request, $params, $client->secret)) {
             return $client->user;
         }
         return;
+    }
+
+
+    /**
+     * Calculate signature for request
+     *
+     * @param Request $request Request to generate a signature for
+     * @param array $params parameters.
+     *
+     * @return string
+     *
+     * @throws \RuntimeException
+     */
+    protected function getSignature(Request $request, array $params, $secret)
+    {
+        //参数排序
+        ksort($params);
+        $stringToSign = urlencode(http_build_query($params, null, '&', PHP_QUERY_RFC3986));
+        return base64_encode(hash_hmac('sha1', $stringToSign, $secret, true));
     }
 }
