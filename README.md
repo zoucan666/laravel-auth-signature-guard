@@ -2,6 +2,13 @@
 
 适用于 Laravel Auth 的签名看守器，基于 Laravel Passport
 
+
+请求必填的 参数
+
+app_id
+timestamp
+signature
+
 参数签名计算
 
 ```php
