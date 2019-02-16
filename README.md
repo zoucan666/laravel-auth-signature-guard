@@ -4,6 +4,10 @@
 
 ## 安装 
 
+```bash
+composer require larva/laravel-auth-signature-guard
+```
+
 ```php
 //认证配置
 /config/auth.php
