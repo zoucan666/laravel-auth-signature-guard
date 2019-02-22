@@ -11,6 +11,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Passport\ClientRepository;
 
 /**
@@ -77,6 +78,12 @@ class SignatureGuard
 
         if (!$request->has('signature_nonce')) {
             throw new AuthenticationException('Missing signature_nonce parameter.');
+        }
+        //验证重放攻击
+        if (Cache::has(__METHOD__ . $request->input('signature_nonce'))) {
+            throw new AuthenticationException('The signature_nonce verification failed.');
+        } else {
+            Cache::put(__METHOD__ . $request->input('signature_nonce'), 'a', now()->addMinutes(1));
         }
 
         //获取参数
