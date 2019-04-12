@@ -52,19 +52,30 @@ class SDKController extends Controller
 
 
 
-参数签名计算
+参数签名计算 例子
 
 ```php
+
+$params = ['app_id' => 3, 'timestamp' => 1555069945,'signature_method'=>'HMAC-SHA1','signature_nonce'=>'rakdienakdig'];
+
+
 //排序参数
 //按照键名对关联数组进行升序排序
 ksort($params);
+
 //编码
 $stringToSign = urlencode(http_build_query($params, null, '&', PHP_QUERY_RFC3986));
 
-//签名
-$signature = base64_encode(hash_hmac('sha1', $stringToSign, $client->secret, true));
+$stringToSign = str_replace(['+', '*'], ['%20', '%2A'], $stringToSign);
+$stringToSign = preg_replace('/%7E/', '~', $stringToSign);
         
+//签名
+$signature = base64_encode(hash_hmac('sha1', $stringToSign, $client->secret.'&', true));
+
 其中参数中的时间戳和世界标准时间相差不能超过1分钟。
+
+
+签名计算例子 在tests 目录
 ```
 
 

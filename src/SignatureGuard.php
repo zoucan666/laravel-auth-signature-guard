@@ -41,7 +41,7 @@ class SignatureGuard
     /**
      * Create a new authentication guard.
      *
-     * @param  \Illuminate\Contracts\Auth\UserProvider $provider
+     * @param \Illuminate\Contracts\Auth\UserProvider $provider
      * @param ClientRepository $clients
      */
     public function __construct(UserProvider $provider, ClientRepository $clients)
@@ -53,7 +53,7 @@ class SignatureGuard
     /**
      * 获取传入请求的用户。
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\Request $request
      * @return User|void
      * @throws AuthenticationException
      */
@@ -117,14 +117,27 @@ class SignatureGuard
     {
         //参数排序
         ksort($params);
-        $stringToSign = urlencode(http_build_query($params, null, '&', PHP_QUERY_RFC3986));
-
+        $query = http_build_query($params, null, '&', PHP_QUERY_RFC3986);
+        $stringToSign = $this->percentEncode($query);
         //签名
         if ($params['signature_method'] == self::SIGNATURE_METHOD_HMACSHA256) {
-            return base64_encode(hash_hmac('sha256', $stringToSign, $key, true));
+            return base64_encode(hash_hmac('sha256', $stringToSign, $key. '&', true));
         } elseif ($params['signature_method'] == self::SIGNATURE_METHOD_HMACSHA1) {
-            return base64_encode(hash_hmac('sha1', $stringToSign, $key, true));
+            return base64_encode(hash_hmac('sha1', $stringToSign, $key. '&', true));
         }
         throw new AuthenticationException('This signature method is not supported.');
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return null|string|string[]
+     */
+    protected function percentEncode($string)
+    {
+        $result = urlencode($string);
+        $result = str_replace(['+', '*'], ['%20', '%2A'], $result);
+        $result = preg_replace('/%7E/', '~', $result);
+        return $result;
     }
 }
