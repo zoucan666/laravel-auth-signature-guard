@@ -47,6 +47,7 @@ class SDKController extends Controller
 | `timestamp` | Int | 请求的时间戳，10位数整形。 |
 | `signature` | String | 签名结果串。 |
 | `signature_method` | String | 签名方式，取值：HMAC-SHA1/HMAC-SHA256 |
+| `signature_version` | String | 签名方式，取值：1.0 |
 | `signature_nonce` | String | 唯一随机数，用于防止网络重放攻击。在不同请求间要使用不同的随机数值。 |
 
 
@@ -56,7 +57,7 @@ class SDKController extends Controller
 
 ```php
 
-$params = ['app_id' => 3, 'timestamp' => 1555069945,'signature_method'=>'HMAC-SHA1','signature_nonce'=>'rakdienakdig'];
+$params = ['app_id' => 3, 'timestamp' => 1555069945,'signature_method'=>'HMAC-SHA1','signature_version'=>'1.0','signature_nonce'=>'rakdienakdig'];
 
 
 //排序参数

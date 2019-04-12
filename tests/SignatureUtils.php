@@ -13,6 +13,7 @@ class SignatureUtils
         $params = [
             'app_id' => 3,
             'timestamp' => time(),
+            'signature_version' => '1.0',
             'signature_method' => 'HMAC-SHA1',
             'signature_nonce' => uniqid()
         ];

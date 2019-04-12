@@ -76,6 +76,10 @@ class SignatureGuard
             throw new AuthenticationException('Missing signature_method parameter.');
         }
 
+        if (!$request->has('signature_version')) {
+            throw new AuthenticationException('Missing signature_version parameter.');
+        }
+
         if (!$request->has('signature_nonce')) {
             throw new AuthenticationException('Missing signature_nonce parameter.');
         }
@@ -99,10 +103,12 @@ class SignatureGuard
             throw new AuthenticationException('App_id is incorrect.');
         }
 
-        if ($request->input('signature') != $this->getSignature($params, $client->secret)) {
-            throw new AuthenticationException('Signature verification failed');
+        if ($params['signature_version'] == '1.0') {
+            if ($request->input('signature') == $this->getSignatureV1($params, $client->secret)) {
+                return $client->user;
+            }
         }
-        return $client->user;
+        throw new AuthenticationException('Signature verification failed');
     }
 
     /**
@@ -113,7 +119,7 @@ class SignatureGuard
      * @return string
      * @throws AuthenticationException
      */
-    protected function getSignature(array $params, $key)
+    protected function getSignatureV1(array $params, $key)
     {
         //参数排序
         ksort($params);
@@ -121,9 +127,9 @@ class SignatureGuard
         $stringToSign = $this->percentEncode($query);
         //签名
         if ($params['signature_method'] == self::SIGNATURE_METHOD_HMACSHA256) {
-            return base64_encode(hash_hmac('sha256', $stringToSign, $key. '&', true));
+            return base64_encode(hash_hmac('sha256', $stringToSign, $key . '&', true));
         } elseif ($params['signature_method'] == self::SIGNATURE_METHOD_HMACSHA1) {
-            return base64_encode(hash_hmac('sha1', $stringToSign, $key. '&', true));
+            return base64_encode(hash_hmac('sha1', $stringToSign, $key . '&', true));
         }
         throw new AuthenticationException('This signature method is not supported.');
     }

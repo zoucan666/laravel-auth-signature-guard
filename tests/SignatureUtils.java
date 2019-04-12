@@ -32,6 +32,7 @@ public class SignatureUtils {
             param.put("app_id", 12345);
             param.put("timestamp", 1555069945);
             param.put("signature_method", "HMAC-SHA1");
+            param.put("signature_version", "1.0");
             param.put("signature_nonce", "9b7a44b0-3be1-11e5-8c73-08002700c460");
 
             try {
