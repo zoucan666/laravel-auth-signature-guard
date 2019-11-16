@@ -9,7 +9,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "laravel/passport": "^5.0 || ^6.0 || ^7.0",
+        "laravel/passport": "^5.0 || ^6.0 || ^7.0 || ^8.0",
         "illuminate/support": "^5.1 || ^6.0"
     },
     "autoload": {
